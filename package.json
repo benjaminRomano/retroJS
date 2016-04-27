@@ -1,0 +1,24 @@
+{
+  "name": "retroJS",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/retroJs.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benjaminRomano/retroJS.git"
+  },
+  "keywords": [
+  ],
+  "author": "Benjamin Romano",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/benjaminRomano/retroJS/issues"
+  },
+  "homepage": "https://github.com/benjaminRomano/retroJS#readme",
+  "dependencies": {
+    "reflect-metadata": "^0.1.3"
+  }
+}
