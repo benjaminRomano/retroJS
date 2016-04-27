@@ -7,17 +7,15 @@ RetroJS is a simple HTTP Client for JavaScript  that heavily uses ES2016 decorat
 
 // Define a retroJS interface
 @RetroJSInterface
-class GithubServiceInterface {
+class IGithubService {
     @GET('users/{user}/repos')
     listRepos(@Path('user') user: string): ICall<IRepo[]> {
         return null;
      }
 }
 
-const githubServiceInterface = new GithubServiceInterface();
-
 // Use RetroJSBuilder to setup a RetroJSInterface
-const retroJSBuilder = new RetroJSBuilder<GithubServiceInterface>(githubServiceInterface);
+const retroJSBuilder = new RetroJSBuilder<GithubServiceInterface>(IGithubService)
 
 const githubService = retroJSBuilder
     .baseUrl('https://api.github.com/')

@@ -1,37 +1,70 @@
-import {RetroJSInterface, GET, Path, RetroJSBuilder, ICall} from './retroJS';
+import * as request from 'request';
+import * as RetroJS from './retroJS';
 
-// Fake interface for testing purposes
-interface IRepo {
-    name: string;
-    fork: string;
-}
+const {RetroBuilder, RetroClient} = RetroJS;
+const {GET, POST, DELETE, PUT, Body, Path, Query} = RetroJS.decorators;
 
-@RetroJSInterface
-class GithubServiceInterface {
+class GithubService {
     @GET('users/{user}/repos')
-    listRepos(@Path('user') user: string): ICall<IRepo[]> {
+    listRepos( @Path('user') user: string, @Query('type') type: string): RetroJS.ICall<any[]> {
         return null;
-     }
+    }
 }
 
-const githubServiceInterface = new GithubServiceInterface();
+class HttpBin {
+    @POST('/post')
+    post( @Body body: any): RetroJS.ICall<any> {
+        return null;
+    }
+    
+    @DELETE('/delete')
+    delete( @Body body: any): RetroJS.ICall<any> {
+        return null;
+    }
+    
+    @PUT('/put')
+    put( @Body body: any): RetroJS.ICall<any> {
+        return null;
+    }
+}
 
-const retroJSBuilder = new RetroJSBuilder<GithubServiceInterface>(githubServiceInterface);
+const client: RetroJS.IHttpClient = new RetroClient(request.defaults({
+    headers: {
+        'User-Agent': 'request'
+    }
+}));
 
-const githubService = retroJSBuilder
+const retroBuilder = new RetroBuilder();
+
+const retro = retroBuilder
+    .client(client)
     .baseUrl('https://api.github.com/')
     .build();
 
-let call = githubService.listRepos('benjaminromano');
+const githubService = retro.create(GithubService);
+
+const call = githubService.listRepos('benjaminRomano', 'owner');
 
 call.execute().then(result => {
-    result.body
-        .map(r => r.name)
-        .forEach(n => console.log(n));
+    console.log(result.body.length);
 });
 
-call.clone().execute().then(result => {
-    result.body
-        .map(r => r.name)
-        .forEach(n => console.log(n));
+// Httpbin tests - http://httpbin.org/
+
+const retro2 = retroBuilder
+    .baseUrl('http://httpbin.org/')
+    .build();
+
+let httpBin = retro2.create(HttpBin);
+
+httpBin.post({ hello: 'world' }).execute().then(r => {
+    console.log(r.body.url, r.body.json);
+});
+
+httpBin.delete({ hello: 'world' }).execute().then(r => {
+    console.log(r.body.url, r.body.json);
+});
+
+httpBin.put({ hello: 'world' }).execute().then(r => {
+    console.log(r.body.url, r.body.json);
 });
