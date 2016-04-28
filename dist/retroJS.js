@@ -13,4 +13,10 @@ exports.decorators = {
     Path: decorators_1.Path,
     Query: decorators_1.Query,
 };
+const defaultParser_1 = require('./parsers/defaultParser');
+const JSONParser_1 = require('./parsers/JSONParser');
+exports.parsers = {
+    DefaultParser: defaultParser_1.DefaultParser,
+    JSONParser: JSONParser_1.JSONParser
+};
 //# sourceMappingURL=retroJS.js.map

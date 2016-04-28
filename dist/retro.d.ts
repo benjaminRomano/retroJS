@@ -1,9 +1,11 @@
 import 'reflect-metadata';
 import { IHttpClient } from './retroClient';
+import { IParser } from './parsers/IParser';
 export declare class Retro {
     private baseUrl;
     private client;
-    constructor(baseUrl: string, client: IHttpClient);
+    private parser;
+    constructor(baseUrl: string, client: IHttpClient, parser: IParser);
     create<T>(klass: {
         new (): T;
     }): T;

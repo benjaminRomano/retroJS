@@ -2,9 +2,10 @@
 require('reflect-metadata');
 const decorators_1 = require('./decorators');
 class Retro {
-    constructor(baseUrl, client) {
+    constructor(baseUrl, client, parser) {
         this.baseUrl = baseUrl;
         this.client = client;
+        this.parser = parser;
     }
     create(klass) {
         const handler = {
@@ -28,9 +29,9 @@ class Retro {
                 baseUrl: this.baseUrl
             };
             if (bodyDescriptor) {
-                options.body = JSON.stringify(args[bodyDescriptor.index]);
+                options.body = this.parser.encode(args[bodyDescriptor.index]);
             }
-            return this.client.constructCall(requestPath, options);
+            return this.client.constructCall(this.parser, requestPath, options);
         };
     }
     addPathParams(path, pathParams, args) {

@@ -1,5 +1,6 @@
 "use strict";
 const retroClient_1 = require('./retroClient');
+const defaultParser_1 = require('./parsers/defaultParser');
 const retro_1 = require('./retro');
 class RetroBuilder {
     constructor() {
@@ -13,9 +14,14 @@ class RetroBuilder {
         this._client = client;
         return this;
     }
+    parser(parser) {
+        this._parser = parser;
+        return this;
+    }
     build() {
         const client = this._client || new retroClient_1.RetroClient();
-        return new retro_1.Retro(this._baseUrl, client);
+        const parser = this._parser || new defaultParser_1.DefaultParser();
+        return new retro_1.Retro(this._baseUrl, client, parser);
     }
 }
 exports.RetroBuilder = RetroBuilder;

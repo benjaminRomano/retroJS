@@ -13,3 +13,11 @@ export let decorators = {
     Path: Path,
     Query: Query,
 };
+
+import {DefaultParser} from './parsers/defaultParser';
+import {JSONParser} from './parsers/JSONParser';
+
+export let parsers = {
+    DefaultParser: DefaultParser,
+    JSONParser: JSONParser
+};

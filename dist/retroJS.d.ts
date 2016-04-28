@@ -10,3 +10,9 @@ export declare let decorators: {
     Path: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
     Query: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
 };
+import { DefaultParser } from './parsers/defaultParser';
+import { JSONParser } from './parsers/JSONParser';
+export declare let parsers: {
+    DefaultParser: typeof DefaultParser;
+    JSONParser: typeof JSONParser;
+};

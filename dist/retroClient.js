@@ -7,8 +7,8 @@ class RetroClient {
             json: true
         });
     }
-    constructCall(path, options) {
-        return new call_1.RetroCall(this.request, path, options);
+    constructCall(parser, path, options) {
+        return new call_1.RetroCall(parser, this.request, path, options);
     }
 }
 exports.RetroClient = RetroClient;

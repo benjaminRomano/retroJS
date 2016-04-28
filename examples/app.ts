@@ -16,12 +16,12 @@ class HttpBin {
     post( @Body body: any): RetroJS.ICall<any> {
         return null;
     }
-    
+
     @DELETE('/delete')
     delete( @Body body: any): RetroJS.ICall<any> {
         return null;
     }
-    
+
     @PUT('/put')
     put( @Body body: any): RetroJS.ICall<any> {
         return null;
@@ -58,9 +58,9 @@ const retro2 = retroBuilder
 
 let httpBin = retro2.create(HttpBin);
 
-httpBin.post({ hello: 'world' }).execute().then(r => {
+httpBin.post('hello').execute().then(r => {
     console.log(r.body.url, r.body.json);
-});
+}).catch(e => console.log(e));
 
 httpBin.delete({ hello: 'world' }).execute().then(r => {
     console.log(r.body.url, r.body.json);

@@ -2,9 +2,10 @@ import 'reflect-metadata';
 import * as request from 'request';
 import {keys, IRequestMethodDescriptor, IBodyDescriptor, IPathDescriptor, IQueryDescriptor} from './decorators';
 import {IHttpClient} from './retroClient';
+import {IParser} from './parsers/IParser';
 
 export class Retro {
-    constructor(private baseUrl: string, private client: IHttpClient) { }
+    constructor(private baseUrl: string, private client: IHttpClient, private parser: IParser) { }
 
     create<T>(klass: { new (): T; }): T {
 
@@ -36,12 +37,12 @@ export class Retro {
                 method: method,
                 baseUrl: this.baseUrl
             };
-            
+
             if (bodyDescriptor) {
-                options.body = JSON.stringify(args[bodyDescriptor.index]);
+                options.body = this.parser.encode(args[bodyDescriptor.index]);
             }
 
-            return this.client.constructCall(requestPath, options);
+            return this.client.constructCall(this.parser, requestPath, options);
         };
     }
 

@@ -1,5 +1,6 @@
 import * as http from 'http';
 import * as request from 'request';
+import {IParser} from './parsers/IParser';
 
 export interface ICall<T> {
     execute(): Promise<ICallResult<T>>;
@@ -16,7 +17,7 @@ export type RequestAPI = request.RequestAPI<request.Request, request.CoreOptions
 export class RetroCall<T> implements ICall<T> {
     private executed: boolean;
 
-    constructor(private request: RequestAPI, private path: string, private options: request.CoreOptions) { }
+    constructor(private parser: IParser, private request: RequestAPI, private path: string, private options: request.CoreOptions) { }
 
     isExecuted(): boolean {
         return this.executed;
@@ -32,24 +33,25 @@ export class RetroCall<T> implements ICall<T> {
 
         let callback: request.RequestCallback;
 
-        let promise = new Promise<ICallResult<any>>((resolve, reject) => {
+        const promise = new Promise<ICallResult<any>>((resolve, reject) => {
 
             callback = (err, response, body) => {
-
                 if (err) {
                     reject(err);
                     return;
                 }
-                
+
+                let parsedBody: any;
+
                 try {
-                    body = JSON.parse(body);
-                } catch (e) {
-                    // Failed to parse. Already JSON
+                    parsedBody = this.parser.parse(body);
+                } catch (err) {
+                    reject(err);
                 }
-                
+
                 resolve({
                     response: response,
-                    body: body
+                    body: parsedBody
                 });
             };
         });
@@ -60,6 +62,6 @@ export class RetroCall<T> implements ICall<T> {
     }
 
     clone(): RetroCall<T> {
-        return new RetroCall<T>(this.request, this.path, this.options);
+        return new RetroCall<T>(this.parser, this.request, this.path, this.options);
     }
 }
