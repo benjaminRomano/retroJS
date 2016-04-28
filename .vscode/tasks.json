@@ -1,44 +1,40 @@
-// {
-// 	// See http://go.microsoft.com/fwlink/?LinkId=733558
-// 	// for the documentation about the tasks.json format
-// 	"version": "0.1.0",
-// 	"command": "tsc",
-// 	"isShellCommand": true,
-// 	"args": ["-w", "-p", "."],
-// 	"showOutput": "silent",
-// 	"isWatching": true,
-// 	"problemMatcher": "$tsc-watch"
-// }
 {
+	// See http://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
 	"version": "0.1.0",
-	"command": "tsc",
-	"args": [
-		"-w",
-		"-p"
-	],
+	"command": "npm",
 	"isShellCommand": true,
-	"isWatching": true,
+	"showOutput": "always",
 	"suppressTaskName": true,
 	"tasks": [
 		{
-			"taskName": "build",
-			"args": [
-				"."
-			],
-			"isBuildCommand": true,
-			"problemMatcher": [
-				"$tsc-watch"
-			]
+			"taskName": "install",
+			"args": ["install"]
 		},
 		{
-			"taskName": "build-examples",
-			"args": [
-				"./examples"
-			],
+			"taskName": "update",
+			"args": ["update"]
+		},
+		{
+			"taskName": "test",
+			"args": ["run", "test"]
+		},
+		{
+			"isBuildCommand": true,
 			"isWatching": true,
 			"problemMatcher": [
 				"$tsc-watch"
-			]
+			],
+			"taskName": "build",
+			"args": ["run", "build"]
+		},
+		{
+			"isWatching": true,
+			"problemMatcher": [
+				"$tsc-watch"
+			],
+			"taskName": "buildExamples",
+			"args": ["run", "buildExamples"]
 		}
 	]
 }

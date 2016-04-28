@@ -1,0 +1,7 @@
+examples
+.vscode
+src
+dist/*.js.map
+tslint.json
+typings.json
+tsconfig.json

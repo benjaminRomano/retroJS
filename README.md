@@ -2,40 +2,56 @@
 
 RetroJS is a simple HTTP Client for JavaScript  that heavily uses ES2016 decorators. Inspired by [Retrofit](http://square.github.io/retrofit/)
 
-#### How to use
+#### Example
 ``` ts
+import * as request from 'request';
+import * as RetroJS from 'retrojs';
 
-// Define a retroJS interface
-@RetroJSInterface
-class IGithubService {
-    @GET('users/{user}/repos')
-    listRepos(@Path('user') user: string): ICall<IRepo[]> {
+const {RetroBuilder, RetroClient} = RetroJS;
+const {GET, POST, DELETE, PUT, Body, Path, Query} = RetroJS.decorators;
+
+class GithubService {
+    @GET('users/{user}/repos?sort=pushed')
+    listRepos( @Path('user') user: string, @Query('type') type: string): RetroJS.ICall<any[]> {
         return null;
-     }
+    }
 }
 
-// Use RetroJSBuilder to setup a RetroJSInterface
-const retroJSBuilder = new RetroJSBuilder<GithubServiceInterface>(IGithubService)
+// Optional: Use a custom client
+const client: RetroJS.IHttpClient = new RetroClient(request.defaults({
+    headers: {
+        'User-Agent': 'request'
+    }
+}));
 
-const githubService = retroJSBuilder
+const retro = new RetroBuilder()
+    .client(client)
     .baseUrl('https://api.github.com/')
     .build();
-    
-let call = githubService.listRepos('benjaminromano');
-    
-// Asychronosouly execute an http request
-call.execute().then(result => {
-    console.log(result.response); // IncomingMessage object from node http.request
-    result.body
-        .map(r => r.name)
-        .forEach(n => console.log(n));
-});
 
-// Re-use an existing call
-call.clone().execute().then(result => {
-    result.body
-        .map(r => r.name)
-        .forEach(n => console.log(n));
+// Use the Retro instance to instantiate the class
+const githubService = retro.create(GithubService);
+
+const call = githubService.listRepos('benjaminRomano', 'owner');
+
+call.execute().then(result => {
+    console.log(result.body.length);
 });
+```
+
+
+#### Decorators
+
+``` ts
+/* Method Decorators */
+@POST('path')
+@GET('path')
+@DELETE('path')
+@PUT('path')
+
+/* Parameter Decorators */
+someFunction(@Body body: any);
+someFunction(@Query('type') type: string);
+someFunction(@Path('user') user: string);
 
 ```

@@ -4,4 +4,7 @@ typings/browser
 typings/main
 typings/main.d.ts
 typings/browser.d.ts
-dist
+
+dist/**/*.js.map
+examples/app.js.map
+examples/app.js

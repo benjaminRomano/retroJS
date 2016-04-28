@@ -4,17 +4,14 @@
 	"compilerOptions": {
 		"target": "es6",
 		"sourceMap": true,
-		"declaration": true,
 		"module": "commonjs",
-		"outDir": "dist",
+		"outDir": ".",
 		"experimentalDecorators": true,
 		"emitDecoratorMetadata": true,
 		"forceConsistentCasingInFileNames": true,
 		"pretty": true
 	},
 	"exclude": [
-		"dist",
-		"node_modules",
-		"examples"
+		"node_modules"
 	]
 }

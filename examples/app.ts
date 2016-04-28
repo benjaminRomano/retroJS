@@ -1,11 +1,11 @@
 import * as request from 'request';
-import * as RetroJS from './retroJS';
+import * as RetroJS from '../dist/retroJS';
 
 const {RetroBuilder, RetroClient} = RetroJS;
 const {GET, POST, DELETE, PUT, Body, Path, Query} = RetroJS.decorators;
 
 class GithubService {
-    @GET('users/{user}/repos')
+    @GET('users/{user}/repos?sort=pushed')
     listRepos( @Path('user') user: string, @Query('type') type: string): RetroJS.ICall<any[]> {
         return null;
     }
