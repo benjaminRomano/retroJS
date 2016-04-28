@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import *as request from 'request';
+import * as request from 'request';
 import {keys, IRequestMethodDescriptor, IBodyDescriptor, IPathDescriptor, IQueryDescriptor} from './decorators';
 import {IHttpClient} from './retroClient';
 
