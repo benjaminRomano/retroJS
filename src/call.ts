@@ -40,10 +40,16 @@ export class RetroCall<T> implements ICall<T> {
                     reject(err);
                     return;
                 }
-
+                
+                try {
+                    body = JSON.parse(body);
+                } catch (e) {
+                    // Failed to parse. Already JSON
+                }
+                
                 resolve({
                     response: response,
-                    body: JSON.parse(body)
+                    body: body
                 });
             };
         });

@@ -20,9 +20,14 @@ class RetroCall {
                     reject(err);
                     return;
                 }
+                try {
+                    body = JSON.parse(body);
+                }
+                catch (e) {
+                }
                 resolve({
                     response: response,
-                    body: JSON.parse(body)
+                    body: body
                 });
             };
         });

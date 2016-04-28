@@ -8,7 +8,7 @@ export interface IHttpClient {
 export class RetroClient implements IHttpClient {
     
     constructor(private request?: RequestAPI) {
-        this.request = this.request || request.defaults({
+        this.request = this.request || require('request').defaults({
             json: true
         });
     }

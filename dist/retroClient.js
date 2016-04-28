@@ -3,7 +3,7 @@ const call_1 = require('./call');
 class RetroClient {
     constructor(request) {
         this.request = request;
-        this.request = this.request || request.defaults({
+        this.request = this.request || require('request').defaults({
             json: true
         });
     }

@@ -31,7 +31,8 @@ class HttpBin {
 const client: RetroJS.IHttpClient = new RetroClient(request.defaults({
     headers: {
         'User-Agent': 'request'
-    }
+    },
+    json: true
 }));
 
 const retroBuilder = new RetroBuilder();
