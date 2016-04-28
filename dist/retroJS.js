@@ -12,6 +12,8 @@ exports.decorators = {
     Body: decorators_1.Body,
     Path: decorators_1.Path,
     Query: decorators_1.Query,
+    Headers: decorators_1.Headers,
+    Header: decorators_1.Header
 };
 const defaultParser_1 = require('./parsers/defaultParser');
 const JSONParser_1 = require('./parsers/JSONParser');

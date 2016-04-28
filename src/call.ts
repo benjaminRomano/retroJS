@@ -34,7 +34,7 @@ export class RetroCall<T> implements ICall<T> {
         let callback: request.RequestCallback;
 
         const promise = new Promise<ICallResult<any>>((resolve, reject) => {
-
+            
             callback = (err, response, body) => {
                 if (err) {
                     reject(err);

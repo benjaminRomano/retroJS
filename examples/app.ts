@@ -2,7 +2,7 @@ import * as request from 'request';
 import * as RetroJS from '../dist/retroJS';
 
 const {RetroBuilder, RetroClient} = RetroJS;
-const {GET, POST, DELETE, PUT, Body, Path, Query} = RetroJS.decorators;
+const {GET, POST, DELETE, PUT, Headers, Header, Body, Path, Query} = RetroJS.decorators;
 
 class GithubService {
     @GET('users/{user}/repos?sort=pushed')
@@ -24,6 +24,15 @@ class HttpBin {
 
     @PUT('/put')
     put( @Body body: any): RetroJS.ICall<any> {
+        return null;
+    }
+
+    @Headers({
+        'test': 'overwritten',
+        'works': 'works'
+    })
+    @GET('/headers')
+    headers( @Header('test') header: string): RetroJS.ICall<any> {
         return null;
     }
 }
@@ -68,4 +77,8 @@ httpBin.delete({ hello: 'world' }).execute().then(r => {
 
 httpBin.put({ hello: 'world' }).execute().then(r => {
     console.log(r.body.url, r.body.json);
+});
+
+httpBin.headers('test').execute().then(r => {
+    console.log('http://httpbin.org/headers', r.body.headers);
 });

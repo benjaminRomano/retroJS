@@ -48,10 +48,11 @@ call.execute().then(result => {
 @GET('path')
 @DELETE('path')
 @PUT('path')
+@Headers({ 'User-Agent': 'request' })
 
 /* Parameter Decorators */
 someFunction(@Body body: any);
 someFunction(@Query('type') type: string);
 someFunction(@Path('user') user: string);
-
+someFunction(@Header('Cache-Control') cacheControl: string); // Note: values in @Header take precedence over @Headers
 ```

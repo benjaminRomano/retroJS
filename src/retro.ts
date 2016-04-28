@@ -1,6 +1,8 @@
 import 'reflect-metadata';
 import * as request from 'request';
-import {keys, IRequestMethodDescriptor, IBodyDescriptor, IPathDescriptor, IQueryDescriptor} from './decorators';
+import {keys, IHeadersDescriptor, IHeaderDescriptor,
+    IRequestMethodDescriptor, IBodyDescriptor,
+    IPathDescriptor, IQueryDescriptor} from './decorators';
 import {IHttpClient} from './retroClient';
 import {IParser} from './parsers/IParser';
 
@@ -23,6 +25,8 @@ export class Retro {
         const pathParams: IPathDescriptor[] = Reflect.getMetadata(keys.Path, target, propertyKey) || [];
         const queryParams: IQueryDescriptor[] = Reflect.getMetadata(keys.Query, target, propertyKey) || [];
         const bodyDescriptor: IBodyDescriptor = Reflect.getMetadata(keys.Body, target, propertyKey);
+        const headerDescriptors: IHeaderDescriptor[] = Reflect.getMetadata(keys.Header, target, propertyKey) || [];
+        const headersDescriptor: IHeadersDescriptor = Reflect.getMetadata(keys.Headers, target, propertyKey);
 
         const {method, path} = requestDescriptor;
 
@@ -42,8 +46,27 @@ export class Retro {
                 options.body = this.parser.encode(args[bodyDescriptor.index]);
             }
 
+            if (headerDescriptors.length > 0 || headersDescriptor) {
+                options.headers = this.createHeaders(headersDescriptor, headerDescriptors, args);
+            }
+
             return this.client.constructCall(this.parser, requestPath, options);
         };
+    }
+
+    private createHeaders(headersDescriptor: IHeadersDescriptor, headerDescriptors: IHeaderDescriptor[], args: any[]): request.Headers {
+
+        const headers: request.Headers = {};
+
+        if (headersDescriptor) {
+            Object.assign(headers, headersDescriptor);
+        }
+
+        for (const h of headerDescriptors) {
+            headers[h.name] = args[h.index];
+        }
+
+        return headers;
     }
 
     private addPathParams(path: string, pathParams: IPathDescriptor[], args: any[]): string {

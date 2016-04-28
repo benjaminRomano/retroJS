@@ -9,6 +9,10 @@ export declare let decorators: {
     Body: <T>(target: Object, propertyKey: string | symbol, index: number) => void;
     Path: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
     Query: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
+    Headers: <T>(headers: {
+        [name: string]: string;
+    }) => <T>(target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T> | void;
+    Header: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
 };
 import { DefaultParser } from './parsers/defaultParser';
 import { JSONParser } from './parsers/JSONParser';

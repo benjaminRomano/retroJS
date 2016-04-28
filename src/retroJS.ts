@@ -2,7 +2,7 @@ export {ICall} from './call';
 export {RetroBuilder} from './retroBuilder';
 export {RetroClient, IHttpClient} from './retroClient';
 
-import {GET, POST, DELETE, PUT, Body, Path, Query} from './decorators';
+import {GET, POST, DELETE, PUT, Header, Headers, Body, Path, Query} from './decorators';
 
 export let decorators = {
     GET: GET,
@@ -12,6 +12,8 @@ export let decorators = {
     Body: Body,
     Path: Path,
     Query: Query,
+    Headers: Headers,
+    Header: Header
 };
 
 import {DefaultParser} from './parsers/defaultParser';

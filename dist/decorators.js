@@ -4,7 +4,9 @@ exports.keys = {
     Path: Symbol('Path'),
     Request: Symbol('Request'),
     Query: Symbol('Query'),
-    Body: Symbol('Body')
+    Body: Symbol('Body'),
+    Headers: Symbol('Headers'),
+    Header: Symbol('Header')
 };
 function Path(name) {
     return (target, propertyKey, index) => {
@@ -28,6 +30,17 @@ function Query(name) {
     };
 }
 exports.Query = Query;
+function Header(name) {
+    return (target, propertyKey, index) => {
+        const existingHeaders = Reflect.getOwnMetadata(exports.keys.Header, target, propertyKey) || [];
+        existingHeaders.push({
+            name: name,
+            index: index
+        });
+        Reflect.defineMetadata(exports.keys.Header, existingHeaders, target, propertyKey);
+    };
+}
+exports.Header = Header;
 function Body(target, propertyKey, index) {
     const bodyDescriptor = {
         index: index
@@ -60,4 +73,10 @@ function createMethodDecorator(method, path) {
         Reflect.defineMetadata(exports.keys.Request, requestMethodDescriptor, target, propertyKey);
     };
 }
+function Headers(headers) {
+    return (target, propertyKey, symbol) => {
+        Reflect.defineMetadata(exports.keys.Headers, headers, target, propertyKey);
+    };
+}
+exports.Headers = Headers;
 //# sourceMappingURL=decorators.js.map

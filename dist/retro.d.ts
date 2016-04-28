@@ -10,6 +10,7 @@ export declare class Retro {
         new (): T;
     }): T;
     private constructCall<T>(target, propertyKey, receiver);
+    private createHeaders(headersDescriptor, headerDescriptors, args);
     private addPathParams(path, pathParams, args);
     private addQueryParams(path, queryParams, args);
 }

@@ -19,6 +19,8 @@ class Retro {
         const pathParams = Reflect.getMetadata(decorators_1.keys.Path, target, propertyKey) || [];
         const queryParams = Reflect.getMetadata(decorators_1.keys.Query, target, propertyKey) || [];
         const bodyDescriptor = Reflect.getMetadata(decorators_1.keys.Body, target, propertyKey);
+        const headerDescriptors = Reflect.getMetadata(decorators_1.keys.Header, target, propertyKey) || [];
+        const headersDescriptor = Reflect.getMetadata(decorators_1.keys.Headers, target, propertyKey);
         const { method, path } = requestDescriptor;
         return (...args) => {
             let requestPath = path;
@@ -31,8 +33,21 @@ class Retro {
             if (bodyDescriptor) {
                 options.body = this.parser.encode(args[bodyDescriptor.index]);
             }
+            if (headerDescriptors.length > 0 || headersDescriptor) {
+                options.headers = this.createHeaders(headersDescriptor, headerDescriptors, args);
+            }
             return this.client.constructCall(this.parser, requestPath, options);
         };
+    }
+    createHeaders(headersDescriptor, headerDescriptors, args) {
+        const headers = {};
+        if (headersDescriptor) {
+            Object.assign(headers, headersDescriptor);
+        }
+        for (const h of headerDescriptors) {
+            headers[h.name] = args[h.index];
+        }
+        return headers;
     }
     addPathParams(path, pathParams, args) {
         for (const p of pathParams) {

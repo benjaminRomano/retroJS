@@ -4,7 +4,9 @@ export const keys = {
     Path: Symbol('Path'),
     Request: Symbol('Request'),
     Query: Symbol('Query'),
-    Body: Symbol('Body')
+    Body: Symbol('Body'),
+    Headers: Symbol('Headers'),
+    Header: Symbol('Header')
 };
 
 export interface IPathDescriptor {
@@ -21,9 +23,18 @@ export interface IQueryDescriptor {
     name: string;
 }
 
+export interface IHeaderDescriptor {
+    index: number;
+    name: string;
+}
+
 export interface IRequestMethodDescriptor {
     method: string;
     path: string;
+}
+
+export interface IHeadersDescriptor {
+    [name: string]: string;
 }
 
 export function Path(name: string): ParameterDecorator {
@@ -49,6 +60,19 @@ export function Query(name: string): ParameterDecorator {
         });
 
         Reflect.defineMetadata(keys.Query, existingQueryParams, target, propertyKey);
+    };
+}
+
+export function Header(name: string): ParameterDecorator {
+    return (target: Object, propertyKey: string | symbol, index: number): void => {
+        const existingHeaders: IHeaderDescriptor[] = Reflect.getOwnMetadata(keys.Header, target, propertyKey) || [];
+
+        existingHeaders.push({
+            name: name,
+            index: index
+        });
+
+        Reflect.defineMetadata(keys.Header, existingHeaders, target, propertyKey);
     };
 }
 
@@ -84,5 +108,12 @@ function createMethodDecorator<T>(method: string, path: string): MethodDecorator
         };
 
         Reflect.defineMetadata(keys.Request, requestMethodDescriptor, target, propertyKey);
+    };
+}
+
+export function Headers<T>(headers: { [name: string]: string }): MethodDecorator {
+    return (target: Object, propertyKey: string | symbol, symbol: TypedPropertyDescriptor<T>): void => {
+
+        Reflect.defineMetadata(keys.Headers, headers, target, propertyKey);
     };
 }
