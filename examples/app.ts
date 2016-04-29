@@ -2,7 +2,8 @@ import * as request from 'request';
 import * as RetroJS from '../dist/retroJS';
 
 const {RetroBuilder, RetroClient} = RetroJS;
-const {GET, POST, DELETE, PUT, Headers, Header, Body, Path, Query, Field} = RetroJS.decorators;
+const {GET, POST, DELETE, PUT, Headers,
+    Part, Header, Body, Path, Query, Field} = RetroJS.decorators;
 
 class GithubService {
     @GET('users/{user}/repos?sort=pushed')
@@ -35,9 +36,14 @@ class HttpBin {
     headers( @Header('test') header: string): RetroJS.ICall<any> {
         return null;
     }
-    
+
     @POST('/post')
-    form(@Field('name') name: string, @Field('value') value: string): RetroJS.ICall<any> {
+    form( @Field('name') name: string, @Field('value') value: string): RetroJS.ICall<any> {
+        return null;
+    }
+
+    @POST('/post')
+    formData( @Part('name') name: string, @Part('value') value: string): RetroJS.ICall<any> {
         return null;
     }
 }
@@ -89,5 +95,9 @@ httpBin.headers('test').execute().then(r => {
 });
 
 httpBin.form('name', 'some value').execute().then(r => {
-    console.log('http://httpbin.org/forms/post', r.body.form);
+    console.log(`${r.body.url} form`, r.body.form);
+});
+
+httpBin.formData('formData', 'moreFormData').execute().then(r => {
+    console.log(`${r.body.url} formData`, r.body.form);
 });

@@ -1,31 +1,20 @@
 import 'reflect-metadata';
 export declare const keys: {
-    Path: symbol;
-    Request: symbol;
-    Query: symbol;
-    Body: symbol;
-    Headers: symbol;
-    Header: symbol;
-    Field: symbol;
+    Path: string;
+    Request: string;
+    Query: string;
+    Body: string;
+    Headers: string;
+    Header: string;
+    Field: string;
+    Part: string;
 };
-export interface IPathDescriptor {
+export interface INamedParameterDescriptor {
     index: number;
     name: string;
 }
 export interface IBodyDescriptor {
     index: number;
-}
-export interface IQueryDescriptor {
-    index: number;
-    name: string;
-}
-export interface IFieldDescriptor {
-    index: number;
-    name: string;
-}
-export interface IHeaderDescriptor {
-    index: number;
-    name: string;
 }
 export interface IRequestMethodDescriptor {
     method: string;
@@ -37,6 +26,7 @@ export interface IHeadersDescriptor {
 export declare function Path(name: string): ParameterDecorator;
 export declare function Query(name: string): ParameterDecorator;
 export declare function Field(name: string): ParameterDecorator;
+export declare function Part(name: string): ParameterDecorator;
 export declare function Header(name: string): ParameterDecorator;
 export declare function Body<T>(target: Object, propertyKey: string | symbol, index: number): void;
 export declare function GET<T>(path: string): MethodDecorator;

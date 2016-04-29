@@ -14,6 +14,7 @@ exports.decorators = {
     Query: decorators_1.Query,
     Headers: decorators_1.Headers,
     Header: decorators_1.Header,
-    Field: decorators_1.Field
+    Field: decorators_1.Field,
+    Part: decorators_1.Part
 };
 //# sourceMappingURL=retroJS.js.map

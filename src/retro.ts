@@ -1,10 +1,10 @@
+
 import 'reflect-metadata';
 import * as request from 'request';
-import {keys, IHeadersDescriptor, IHeaderDescriptor,
-    IRequestMethodDescriptor, IBodyDescriptor,
-    IPathDescriptor, IQueryDescriptor,
-    IFieldDescriptor} from './decorators';
 import {IHttpClient} from './retroClient';
+import {MetadataError} from './errors/metadataError';
+import {keys, IHeadersDescriptor, INamedParameterDescriptor,
+    IRequestMethodDescriptor, IBodyDescriptor} from './decorators';
 
 export class Retro {
     constructor(private baseUrl: string, private client: IHttpClient) { }
@@ -21,49 +21,63 @@ export class Retro {
     }
 
     private constructCall<T extends Object>(target: T, propertyKey: string | symbol, receiver: any): any {
-        const requestDescriptor: IRequestMethodDescriptor = Reflect.getMetadata(keys.Request, target, propertyKey) || '';
-        const pathParams: IPathDescriptor[] = Reflect.getMetadata(keys.Path, target, propertyKey) || [];
-        const queryParams: IQueryDescriptor[] = Reflect.getMetadata(keys.Query, target, propertyKey) || [];
-        const bodyDescriptor: IBodyDescriptor = Reflect.getMetadata(keys.Body, target, propertyKey);
-        const headerDescriptors: IHeaderDescriptor[] = Reflect.getMetadata(keys.Header, target, propertyKey) || [];
-        const headersDescriptor: IHeadersDescriptor = Reflect.getMetadata(keys.Headers, target, propertyKey);
-        const fieldDescriptors: IFieldDescriptor[] = Reflect.getMetadata(keys.Field, target, propertyKey) || [];
-
-        const {method, path} = requestDescriptor;
-
         return (...args): any => {
+            const requestDescriptor: IRequestMethodDescriptor = Reflect.getMetadata(keys.Request, target, propertyKey);
+            const pathParams: INamedParameterDescriptor[] = Reflect.getMetadata(keys.Path, target, propertyKey) || [];
+            const queryParams: INamedParameterDescriptor[] = Reflect.getMetadata(keys.Query, target, propertyKey) || [];
 
-            let requestPath: string = path;
+            if (!requestDescriptor) {
+                throw new MetadataError(target, propertyKey, 'missing method decorator');
+            }
+
+            let requestPath: string = requestDescriptor.path;
 
             requestPath = this.addPathParams(requestPath, pathParams, args);
             requestPath = this.addQueryParams(requestPath, queryParams, args);
 
-            let options: request.CoreOptions = {
-                method: method,
-                baseUrl: this.baseUrl
-            };
-
-            if (bodyDescriptor) {
-                if (typeof args[bodyDescriptor.index] === 'undefined') {
-                    throw new Error(`${target.constructor.name}.${propertyKey}: body is undefined`);
-                }
-
-                options.body = args[bodyDescriptor.index];
-            }
-
-            if (fieldDescriptors.length > 0) {
-                options.form = this.createForm(fieldDescriptors, args);
-            }
-
-            if (headerDescriptors.length > 0 || headersDescriptor) {
-                options.headers = this.createHeaders(headersDescriptor, headerDescriptors, args);
-            }
+            const options = this.createOptions(target, propertyKey, args);
 
             return this.client.constructCall(requestPath, options);
         };
     }
 
-    private createForm(fieldDescriptors: IFieldDescriptor[], args: any[]): any {
+    private createOptions(target: Object, propertyKey: string | symbol, args: any[]): request.CoreOptions {
+        const requestDescriptor: IRequestMethodDescriptor = Reflect.getMetadata(keys.Request, target, propertyKey);
+        const bodyDescriptor: IBodyDescriptor = Reflect.getMetadata(keys.Body, target, propertyKey);
+        const headerDescriptors: INamedParameterDescriptor[] = Reflect.getMetadata(keys.Header, target, propertyKey) || [];
+        const headersDescriptor: IHeadersDescriptor = Reflect.getMetadata(keys.Headers, target, propertyKey);
+        const fieldDescriptors: INamedParameterDescriptor[] = Reflect.getMetadata(keys.Field, target, propertyKey) || [];
+        const partDescriptors: INamedParameterDescriptor[] = Reflect.getMetadata(keys.Part, target, propertyKey) || [];
+
+        const options: request.CoreOptions = {
+            method: requestDescriptor.method,
+            baseUrl: this.baseUrl
+        };
+
+        if (bodyDescriptor) {
+            if (typeof args[bodyDescriptor.index] === 'undefined') {
+                throw new MetadataError(target, propertyKey, 'body is undefined');
+            }
+
+            options.body = args[bodyDescriptor.index];
+        }
+
+        if (fieldDescriptors.length > 0) {
+            options.form = this.createForm(fieldDescriptors, args);
+        }
+
+        if (headerDescriptors.length > 0 || headersDescriptor) {
+            options.headers = this.createHeaders(headersDescriptor, headerDescriptors, args);
+        }
+
+        if (partDescriptors.length > 0) {
+            options.formData = this.createFormData(partDescriptors, args);
+        }
+
+        return options;
+    }
+
+    private createForm(fieldDescriptors: INamedParameterDescriptor[], args: any[]): any {
 
         const form = {};
 
@@ -76,7 +90,23 @@ export class Retro {
         return form;
     }
 
-    private createHeaders(headersDescriptor: IHeadersDescriptor, headerDescriptors: IHeaderDescriptor[], args: any[]): request.Headers {
+    private createFormData(partDescriptors: INamedParameterDescriptor[], args: any[]): any {
+
+        const formData = {};
+
+        for (const p of partDescriptors) {
+            if (typeof args[p.index] !== 'undefined') {
+                formData[p.name] = args[p.index];
+            }
+        }
+
+        return formData;
+    }
+
+    private createHeaders(
+        headersDescriptor: IHeadersDescriptor,
+        headerDescriptors: INamedParameterDescriptor[],
+        args: any[]): request.Headers {
 
         const headers: request.Headers = {};
 
@@ -93,7 +123,7 @@ export class Retro {
         return headers;
     }
 
-    private addPathParams(path: string, pathParams: IPathDescriptor[], args: any[]): string {
+    private addPathParams(path: string, pathParams: INamedParameterDescriptor[], args: any[]): string {
         for (const p of pathParams) {
 
             if (typeof args[p.index] !== 'string' && typeof args[p.index] !== 'number') {
@@ -106,7 +136,7 @@ export class Retro {
         return path;
     }
 
-    private addQueryParams(path: string, queryParams: IQueryDescriptor[], args: any[]): string {
+    private addQueryParams(path: string, queryParams: INamedParameterDescriptor[], args: any[]): string {
         if (queryParams.length === 0) {
             return path;
         }

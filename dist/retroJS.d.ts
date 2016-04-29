@@ -14,4 +14,5 @@ export declare let decorators: {
     }) => <T>(target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T> | void;
     Header: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
     Field: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
+    Part: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
 };

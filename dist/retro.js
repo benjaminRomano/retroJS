@@ -1,5 +1,6 @@
 "use strict";
 require('reflect-metadata');
+const metadataError_1 = require('./errors/metadataError');
 const decorators_1 = require('./decorators');
 class Retro {
     constructor(baseUrl, client) {
@@ -14,36 +15,47 @@ class Retro {
         return new Proxy(target, handler);
     }
     constructCall(target, propertyKey, receiver) {
-        const requestDescriptor = Reflect.getMetadata(decorators_1.keys.Request, target, propertyKey) || '';
-        const pathParams = Reflect.getMetadata(decorators_1.keys.Path, target, propertyKey) || [];
-        const queryParams = Reflect.getMetadata(decorators_1.keys.Query, target, propertyKey) || [];
+        return (...args) => {
+            const requestDescriptor = Reflect.getMetadata(decorators_1.keys.Request, target, propertyKey);
+            const pathParams = Reflect.getMetadata(decorators_1.keys.Path, target, propertyKey) || [];
+            const queryParams = Reflect.getMetadata(decorators_1.keys.Query, target, propertyKey) || [];
+            if (!requestDescriptor) {
+                throw new metadataError_1.MetadataError(target, propertyKey, 'missing method decorator');
+            }
+            let requestPath = requestDescriptor.path;
+            requestPath = this.addPathParams(requestPath, pathParams, args);
+            requestPath = this.addQueryParams(requestPath, queryParams, args);
+            const options = this.createOptions(target, propertyKey, args);
+            return this.client.constructCall(requestPath, options);
+        };
+    }
+    createOptions(target, propertyKey, args) {
+        const requestDescriptor = Reflect.getMetadata(decorators_1.keys.Request, target, propertyKey);
         const bodyDescriptor = Reflect.getMetadata(decorators_1.keys.Body, target, propertyKey);
         const headerDescriptors = Reflect.getMetadata(decorators_1.keys.Header, target, propertyKey) || [];
         const headersDescriptor = Reflect.getMetadata(decorators_1.keys.Headers, target, propertyKey);
         const fieldDescriptors = Reflect.getMetadata(decorators_1.keys.Field, target, propertyKey) || [];
-        const { method, path } = requestDescriptor;
-        return (...args) => {
-            let requestPath = path;
-            requestPath = this.addPathParams(requestPath, pathParams, args);
-            requestPath = this.addQueryParams(requestPath, queryParams, args);
-            let options = {
-                method: method,
-                baseUrl: this.baseUrl
-            };
-            if (bodyDescriptor) {
-                if (typeof args[bodyDescriptor.index] === 'undefined') {
-                    throw new Error(`${target.constructor.name}.${propertyKey}: body is undefined`);
-                }
-                options.body = args[bodyDescriptor.index];
-            }
-            if (fieldDescriptors.length > 0) {
-                options.form = this.createForm(fieldDescriptors, args);
-            }
-            if (headerDescriptors.length > 0 || headersDescriptor) {
-                options.headers = this.createHeaders(headersDescriptor, headerDescriptors, args);
-            }
-            return this.client.constructCall(requestPath, options);
+        const partDescriptors = Reflect.getMetadata(decorators_1.keys.Part, target, propertyKey) || [];
+        const options = {
+            method: requestDescriptor.method,
+            baseUrl: this.baseUrl
         };
+        if (bodyDescriptor) {
+            if (typeof args[bodyDescriptor.index] === 'undefined') {
+                throw new metadataError_1.MetadataError(target, propertyKey, 'body is undefined');
+            }
+            options.body = args[bodyDescriptor.index];
+        }
+        if (fieldDescriptors.length > 0) {
+            options.form = this.createForm(fieldDescriptors, args);
+        }
+        if (headerDescriptors.length > 0 || headersDescriptor) {
+            options.headers = this.createHeaders(headersDescriptor, headerDescriptors, args);
+        }
+        if (partDescriptors.length > 0) {
+            options.formData = this.createFormData(partDescriptors, args);
+        }
+        return options;
     }
     createForm(fieldDescriptors, args) {
         const form = {};
@@ -53,6 +65,15 @@ class Retro {
             }
         }
         return form;
+    }
+    createFormData(partDescriptors, args) {
+        const formData = {};
+        for (const p of partDescriptors) {
+            if (typeof args[p.index] !== 'undefined') {
+                formData[p.name] = args[p.index];
+            }
+        }
+        return formData;
     }
     createHeaders(headersDescriptor, headerDescriptors, args) {
         const headers = {};
