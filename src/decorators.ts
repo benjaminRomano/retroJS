@@ -6,7 +6,8 @@ export const keys = {
     Query: Symbol('Query'),
     Body: Symbol('Body'),
     Headers: Symbol('Headers'),
-    Header: Symbol('Header')
+    Header: Symbol('Header'),
+    Field: Symbol('Field')
 };
 
 export interface IPathDescriptor {
@@ -19,6 +20,11 @@ export interface IBodyDescriptor {
 }
 
 export interface IQueryDescriptor {
+    index: number;
+    name: string;
+}
+
+export interface IFieldDescriptor {
     index: number;
     name: string;
 }
@@ -40,6 +46,10 @@ export interface IHeadersDescriptor {
 export function Path(name: string): ParameterDecorator {
     return (target: Object, propertyKey: string | symbol, index: number): void => {
         const existingPathParams: IPathDescriptor[] = Reflect.getOwnMetadata(keys.Path, target, propertyKey) || [];
+        
+        if (typeof name !== 'string') {
+            throw new Error('Path name must be a string');
+        }
 
         existingPathParams.push({
             name: name,
@@ -53,6 +63,10 @@ export function Path(name: string): ParameterDecorator {
 export function Query(name: string): ParameterDecorator {
     return (target: Object, propertyKey: string | symbol, index: number): void => {
         const existingQueryParams: IQueryDescriptor[] = Reflect.getOwnMetadata(keys.Query, target, propertyKey) || [];
+        
+        if (typeof name !== 'string') {
+            throw new Error('Query name must be a string');
+        }
 
         existingQueryParams.push({
             name: name,
@@ -63,9 +77,30 @@ export function Query(name: string): ParameterDecorator {
     };
 }
 
+export function Field(name: string): ParameterDecorator {
+    return (target: Object, propertyKey: string | symbol, index: number): void => {
+        const existingFields: IFieldDescriptor[] = Reflect.getOwnMetadata(keys.Field, target, propertyKey) || [];
+        
+        if (typeof name !== 'string') {
+            throw new Error('Field name must be a string');
+        }
+
+        existingFields.push({
+            name: name,
+            index: index
+        });
+
+        Reflect.defineMetadata(keys.Field, existingFields, target, propertyKey);
+    };
+}
+
 export function Header(name: string): ParameterDecorator {
     return (target: Object, propertyKey: string | symbol, index: number): void => {
         const existingHeaders: IHeaderDescriptor[] = Reflect.getOwnMetadata(keys.Header, target, propertyKey) || [];
+
+        if (typeof name !== 'string') {
+            throw new Error('Header name must be a string');
+        }
 
         existingHeaders.push({
             name: name,
@@ -101,12 +136,28 @@ export function PUT<T>(path: string): MethodDecorator {
 }
 
 function createMethodDecorator<T>(method: string, path: string): MethodDecorator {
+    if (typeof method !== 'string') {
+        throw new Error('Method name must be a string');
+    } else if (typeof path !== 'string') {
+        throw new Error('Method path must be a string');
+    }
+    
     return (target: Object, propertyKey: string | symbol, symbol: TypedPropertyDescriptor<T>): void => {
         const requestMethodDescriptor: IRequestMethodDescriptor = {
             method: method,
             path: path
         };
+        
+        
+        if (method === 'GET' && Reflect.getMetadata(keys.Body, target, propertyKey)) {
+            throw new Error(`${target.constructor.name}.${propertyKey}: GET Request cannot have body`);
+        }
 
+        if (Reflect.getMetadata(keys.Body, target, propertyKey) &&
+            Reflect.getMetadata(keys.Field, target, propertyKey)) {
+            throw new Error(`${target.constructor.name}.${propertyKey}: cannot have both body and field`);
+        }
+        
         Reflect.defineMetadata(keys.Request, requestMethodDescriptor, target, propertyKey);
     };
 }

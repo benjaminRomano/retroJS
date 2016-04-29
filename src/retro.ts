@@ -2,12 +2,12 @@ import 'reflect-metadata';
 import * as request from 'request';
 import {keys, IHeadersDescriptor, IHeaderDescriptor,
     IRequestMethodDescriptor, IBodyDescriptor,
-    IPathDescriptor, IQueryDescriptor} from './decorators';
+    IPathDescriptor, IQueryDescriptor,
+    IFieldDescriptor} from './decorators';
 import {IHttpClient} from './retroClient';
-import {IParser} from './parsers/IParser';
 
 export class Retro {
-    constructor(private baseUrl: string, private client: IHttpClient, private parser: IParser) { }
+    constructor(private baseUrl: string, private client: IHttpClient) { }
 
     create<T>(klass: { new (): T; }): T {
 
@@ -20,13 +20,14 @@ export class Retro {
         return new Proxy(target, handler);
     }
 
-    private constructCall<T>(target: T, propertyKey: string | symbol, receiver: any): any {
+    private constructCall<T extends Object>(target: T, propertyKey: string | symbol, receiver: any): any {
         const requestDescriptor: IRequestMethodDescriptor = Reflect.getMetadata(keys.Request, target, propertyKey) || '';
         const pathParams: IPathDescriptor[] = Reflect.getMetadata(keys.Path, target, propertyKey) || [];
         const queryParams: IQueryDescriptor[] = Reflect.getMetadata(keys.Query, target, propertyKey) || [];
         const bodyDescriptor: IBodyDescriptor = Reflect.getMetadata(keys.Body, target, propertyKey);
         const headerDescriptors: IHeaderDescriptor[] = Reflect.getMetadata(keys.Header, target, propertyKey) || [];
         const headersDescriptor: IHeadersDescriptor = Reflect.getMetadata(keys.Headers, target, propertyKey);
+        const fieldDescriptors: IFieldDescriptor[] = Reflect.getMetadata(keys.Field, target, propertyKey) || [];
 
         const {method, path} = requestDescriptor;
 
@@ -43,15 +44,36 @@ export class Retro {
             };
 
             if (bodyDescriptor) {
-                options.body = this.parser.encode(args[bodyDescriptor.index]);
+                if (typeof args[bodyDescriptor.index] === 'undefined') {
+                    throw new Error(`${target.constructor.name}.${propertyKey}: body is undefined`);
+                }
+
+                options.body = args[bodyDescriptor.index];
+            }
+
+            if (fieldDescriptors.length > 0) {
+                options.form = this.createForm(fieldDescriptors, args);
             }
 
             if (headerDescriptors.length > 0 || headersDescriptor) {
                 options.headers = this.createHeaders(headersDescriptor, headerDescriptors, args);
             }
 
-            return this.client.constructCall(this.parser, requestPath, options);
+            return this.client.constructCall(requestPath, options);
         };
+    }
+
+    private createForm(fieldDescriptors: IFieldDescriptor[], args: any[]): any {
+
+        const form = {};
+
+        for (const f of fieldDescriptors) {
+            if (typeof args[f.index] !== 'undefined') {
+                form[f.name] = args[f.index];
+            }
+        }
+
+        return form;
     }
 
     private createHeaders(headersDescriptor: IHeadersDescriptor, headerDescriptors: IHeaderDescriptor[], args: any[]): request.Headers {
@@ -63,7 +85,9 @@ export class Retro {
         }
 
         for (const h of headerDescriptors) {
-            headers[h.name] = args[h.index];
+            if (typeof args[h.index] !== 'undefined') {
+                headers[h.name] = args[h.index];
+            }
         }
 
         return headers;
@@ -71,7 +95,12 @@ export class Retro {
 
     private addPathParams(path: string, pathParams: IPathDescriptor[], args: any[]): string {
         for (const p of pathParams) {
-            path = path.replace(`{${p.name}}`, args[p.index]);
+
+            if (typeof args[p.index] !== 'string' && typeof args[p.index] !== 'number') {
+                throw new Error(`Value of path ${p.name} must be either a number or string`);
+            }
+
+            path = path.replace(`{${p.name}}`, String(args[p.index]));
         }
 
         return path;
@@ -90,6 +119,10 @@ export class Retro {
 
         for (let i = 0; i < queryParams.length; i++) {
             const q = queryParams[i];
+
+            if (typeof args[q.index] === 'undefined' || null) {
+                continue;
+            }
 
             path += `${q.name}=${args[q.index]}`;
 

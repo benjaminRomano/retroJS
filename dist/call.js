@@ -1,7 +1,6 @@
 "use strict";
 class RetroCall {
-    constructor(parser, request, path, options) {
-        this.parser = parser;
+    constructor(request, path, options) {
         this.request = request;
         this.path = path;
         this.options = options;
@@ -21,16 +20,9 @@ class RetroCall {
                     reject(err);
                     return;
                 }
-                let parsedBody;
-                try {
-                    parsedBody = this.parser.parse(body);
-                }
-                catch (err) {
-                    reject(err);
-                }
                 resolve({
                     response: response,
-                    body: parsedBody
+                    body: body
                 });
             };
         });
@@ -38,7 +30,7 @@ class RetroCall {
         return promise;
     }
     clone() {
-        return new RetroCall(this.parser, this.request, this.path, this.options);
+        return new RetroCall(this.request, this.path, this.options);
     }
 }
 exports.RetroCall = RetroCall;

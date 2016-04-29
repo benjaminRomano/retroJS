@@ -6,6 +6,7 @@ export declare const keys: {
     Body: symbol;
     Headers: symbol;
     Header: symbol;
+    Field: symbol;
 };
 export interface IPathDescriptor {
     index: number;
@@ -15,6 +16,10 @@ export interface IBodyDescriptor {
     index: number;
 }
 export interface IQueryDescriptor {
+    index: number;
+    name: string;
+}
+export interface IFieldDescriptor {
     index: number;
     name: string;
 }
@@ -31,6 +36,7 @@ export interface IHeadersDescriptor {
 }
 export declare function Path(name: string): ParameterDecorator;
 export declare function Query(name: string): ParameterDecorator;
+export declare function Field(name: string): ParameterDecorator;
 export declare function Header(name: string): ParameterDecorator;
 export declare function Body<T>(target: Object, propertyKey: string | symbol, index: number): void;
 export declare function GET<T>(path: string): MethodDecorator;

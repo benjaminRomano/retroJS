@@ -13,10 +13,5 @@ export declare let decorators: {
         [name: string]: string;
     }) => <T>(target: Object, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T> | void;
     Header: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
-};
-import { DefaultParser } from './parsers/defaultParser';
-import { JSONParser } from './parsers/JSONParser';
-export declare let parsers: {
-    DefaultParser: typeof DefaultParser;
-    JSONParser: typeof JSONParser;
+    Field: (name: string) => (target: Object, propertyKey: string | symbol, parameterIndex: number) => void;
 };

@@ -2,10 +2,9 @@
 require('reflect-metadata');
 const decorators_1 = require('./decorators');
 class Retro {
-    constructor(baseUrl, client, parser) {
+    constructor(baseUrl, client) {
         this.baseUrl = baseUrl;
         this.client = client;
-        this.parser = parser;
     }
     create(klass) {
         const handler = {
@@ -21,6 +20,7 @@ class Retro {
         const bodyDescriptor = Reflect.getMetadata(decorators_1.keys.Body, target, propertyKey);
         const headerDescriptors = Reflect.getMetadata(decorators_1.keys.Header, target, propertyKey) || [];
         const headersDescriptor = Reflect.getMetadata(decorators_1.keys.Headers, target, propertyKey);
+        const fieldDescriptors = Reflect.getMetadata(decorators_1.keys.Field, target, propertyKey) || [];
         const { method, path } = requestDescriptor;
         return (...args) => {
             let requestPath = path;
@@ -31,13 +31,28 @@ class Retro {
                 baseUrl: this.baseUrl
             };
             if (bodyDescriptor) {
-                options.body = this.parser.encode(args[bodyDescriptor.index]);
+                if (typeof args[bodyDescriptor.index] === 'undefined') {
+                    throw new Error(`${target.constructor.name}.${propertyKey}: body is undefined`);
+                }
+                options.body = args[bodyDescriptor.index];
+            }
+            if (fieldDescriptors.length > 0) {
+                options.form = this.createForm(fieldDescriptors, args);
             }
             if (headerDescriptors.length > 0 || headersDescriptor) {
                 options.headers = this.createHeaders(headersDescriptor, headerDescriptors, args);
             }
-            return this.client.constructCall(this.parser, requestPath, options);
+            return this.client.constructCall(requestPath, options);
         };
+    }
+    createForm(fieldDescriptors, args) {
+        const form = {};
+        for (const f of fieldDescriptors) {
+            if (typeof args[f.index] !== 'undefined') {
+                form[f.name] = args[f.index];
+            }
+        }
+        return form;
     }
     createHeaders(headersDescriptor, headerDescriptors, args) {
         const headers = {};
@@ -45,13 +60,18 @@ class Retro {
             Object.assign(headers, headersDescriptor);
         }
         for (const h of headerDescriptors) {
-            headers[h.name] = args[h.index];
+            if (typeof args[h.index] !== 'undefined') {
+                headers[h.name] = args[h.index];
+            }
         }
         return headers;
     }
     addPathParams(path, pathParams, args) {
         for (const p of pathParams) {
-            path = path.replace(`{${p.name}}`, args[p.index]);
+            if (typeof args[p.index] !== 'string' && typeof args[p.index] !== 'number') {
+                throw new Error(`Value of path ${p.name} must be either a number or string`);
+            }
+            path = path.replace(`{${p.name}}`, String(args[p.index]));
         }
         return path;
     }
@@ -67,6 +87,9 @@ class Retro {
         }
         for (let i = 0; i < queryParams.length; i++) {
             const q = queryParams[i];
+            if (typeof args[q.index] === 'undefined' || null) {
+                continue;
+            }
             path += `${q.name}=${args[q.index]}`;
             if (i !== queryParams.length - 1) {
                 path += '&';
