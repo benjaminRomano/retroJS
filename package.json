@@ -1,6 +1,6 @@
 {
   "name": "retrojs",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "",
   "main": "dist/retroJS.js",
   "typings": "dist/retroJS.d.ts",
