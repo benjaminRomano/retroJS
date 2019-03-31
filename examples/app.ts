@@ -1,103 +1,138 @@
-import * as request from 'request';
-import * as RetroJS from '../dist/retroJS';
+import * as RetroJS from "../src";
 
-const {RetroBuilder, RetroClient} = RetroJS;
-const {GET, POST, DELETE, PUT, Headers,
-    Part, Header, Body, Path, Query, Field} = RetroJS.decorators;
+const { RetroBuilder, RetroClient } = RetroJS;
+const {
+  GET,
+  POST,
+  DELETE,
+  PUT,
+  Headers,
+  Part,
+  Header,
+  Body,
+  Path,
+  Query,
+  Field
+} = RetroJS.decorators;
 
 class GithubService {
-    @GET('users/{user}/repos?sort=pushed')
-    listRepos( @Path('user') user: string, @Query('type') type: string): RetroJS.ICall<any[]> {
-        return null;
-    }
+  @GET("users/{user}/repo?sort=pushed")
+  listRepos(
+    @Path("user") _user: string,
+    @Query("type") _type: string
+  ): RetroJS.ICall<any[]> {
+    return RetroJS.StubCall;
+  }
 }
 
 class HttpBin {
-    @POST('/post')
-    post( @Body body: any): RetroJS.ICall<any> {
-        return null;
-    }
+  @POST("/post")
+  post(@Body _body: any): RetroJS.ICall<any> {
+    return RetroJS.StubCall;
+  }
 
-    @DELETE('/delete')
-    delete( @Body body: any): RetroJS.ICall<any> {
-        return null;
-    }
+  @DELETE("/delete")
+  delete(@Body _body: any): RetroJS.ICall<any> {
+    return RetroJS.StubCall;
+  }
 
-    @PUT('/put')
-    put( @Body body: any): RetroJS.ICall<any> {
-        return null;
-    }
+  @PUT("/put")
+  put(@Body _body: any): RetroJS.ICall<any> {
+    return RetroJS.StubCall;
+  }
 
-    @Headers({
-        'test': 'overwritten',
-        'works': 'works'
-    })
-    @GET('/headers')
-    headers( @Header('test') header: string): RetroJS.ICall<any> {
-        return null;
-    }
+  @Headers({
+    test: "overwritten",
+    works: "works"
+  })
+  @GET("/headers")
+  headers(@Header("test") _header: string): RetroJS.ICall<any> {
+    return RetroJS.StubCall;
+  }
 
-    @POST('/post')
-    form( @Field('name') name: string, @Field('value') value: string): RetroJS.ICall<any> {
-        return null;
-    }
+  @POST("/post")
+  form(
+    @Field("name") _name: string,
+    @Field("value") _value: string
+  ): RetroJS.ICall<any> {
+    return RetroJS.StubCall;
+  }
 
-    @POST('/post')
-    formData( @Part('name') name: string, @Part('value') value: string): RetroJS.ICall<any> {
-        return null;
-    }
+  @POST("/post")
+  formData(
+    @Part("name") _name: string,
+    @Part("value") _value: string
+  ): RetroJS.ICall<any> {
+    return RetroJS.StubCall;
+  }
 }
 
-const client: RetroJS.IHttpClient = new RetroClient(request.defaults({
-    headers: {
-        'User-Agent': 'request'
-    },
-    json: true
-}));
+const client = new RetroClient({
+  headers: {
+    "User-Agent": "axios"
+  }
+});
 
 const retroBuilder = new RetroBuilder();
 
 const retro = retroBuilder
-    .client(client)
-    .baseUrl('https://api.github.com/')
-    .build();
+  .client(client)
+  .baseUrl("https://api.github.com/")
+  .build();
 
 const githubService = retro.create(GithubService);
 
-const call = githubService.listRepos('benjaminRomano', 'owner');
+const call = githubService.listRepos("benjaminRomano", "owner");
 
 call.execute().then(result => {
-    console.log(result.body.length);
+  console.log(result.body.length);
 });
 
 // Httpbin tests - http://httpbin.org/
 
-const retro2 = retroBuilder
-    .baseUrl('http://httpbin.org/')
-    .build();
+const retro2 = retroBuilder.baseUrl("http://httpbin.org/").build();
 
 let httpBin = retro2.create(HttpBin);
 
-httpBin.post('hello').execute().then(r => {
+httpBin
+  .post("hello")
+  .execute()
+  .then(r => {
     console.log(r.body.url, r.body.json);
-}).catch(e => console.log(e));
+  })
+  .catch(e => console.log(e));
 
-httpBin.delete({ hello: 'world' }).execute().then(r => {
+httpBin
+  .delete({ hello: "world" })
+  .execute()
+  .then(r => {
     console.log(r.body.url, r.body.json);
-});
+  });
 
-httpBin.put({ hello: 'world' }).execute().then(r => {
+httpBin
+  .put({ hello: "world" })
+  .execute()
+  .then(r => {
     console.log(r.body.url, r.body.json);
-});
+  });
 
-httpBin.headers('test').execute().then(r => {
-    console.log('http://httpbin.org/headers', r.body.headers);
-});
+httpBin
+  .headers("test")
+  .execute()
+  .then(r => {
+    console.log("http://httpbin.org/headers", r.body.headers);
+  });
 
-httpBin.form('name', 'some value').execute().then(r => {
+httpBin
+  .form("name", "some value")
+  .execute()
+  .then(r => {
     console.log(`${r.body.url} form`, r.body.form);
-});
+  });
 
-httpBin.formData('formData', 'moreFormData').execute().then(r => {
+httpBin
+  .formData("formData", "moreFormData")
+  .execute()
+  .then(r => {
     console.log(`${r.body.url} formData`, r.body.form);
-});
+  });

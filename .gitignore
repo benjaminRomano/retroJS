@@ -1,9 +1,5 @@
 node_modules
 bin
-typings/browser
-typings/main
-typings/main.d.ts
-typings/browser.d.ts
 
 dist/**/*.js.map
 examples/app.js.map
