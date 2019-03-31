@@ -1,13 +1,19 @@
-import { ICall, RetroCall } from "./call";
-import { AxiosRequestConfig } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
+
+/**
+ * Used within hand-written HttpClient to avoid compile errors
+ */
+export const StubResponse: AxiosResponse<any> = null as any;
 
 export class RetroClient {
   constructor(private defaultConfig?: AxiosRequestConfig) {
     this.defaultConfig = this.defaultConfig;
   }
 
-  constructCall<T>(requestConfig: AxiosRequestConfig): ICall<T> {
-    return new RetroCall<T>({
+  public execute<T>(
+    requestConfig: AxiosRequestConfig
+  ): Promise<AxiosResponse<T>> {
+    return axios.request<T>({
       ...this.defaultConfig,
       ...requestConfig
     });

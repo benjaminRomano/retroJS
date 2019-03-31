@@ -1,48 +1,43 @@
 # RetroJS
 
-RetroJS is a simple HTTP Client for JavaScript  that heavily uses ES2016 decorators. Inspired by [Retrofit](http://square.github.io/retrofit/)
+RetroJS is a simple HTTP Client Generator for JavaScript using decorators. Inspired by [Retrofit](http://square.github.io/retrofit/)
 
 #### Example
-``` ts
-import * as request from 'request';
-import * as RetroJS from 'retrojs';
 
-const {RetroBuilder, RetroClient} = RetroJS;
-const {GET, POST, DELETE, PUT, Body, Path, Query} = RetroJS.decorators;
+```ts
+import * as RetroJS from "retrojs";
 
-class GithubService {
-    @GET('users/{user}/repos?sort=pushed')
-    listRepos( @Path('user') user: string, @Query('type') type: string): RetroJS.ICall<any[]> {
-        return null;
-    }
+import { RetroBuilder, StubResponse, GET, Path, Query } from "RetroJS";
+
+import { AxiosResponse } from "axios";
+
+export class GithubClient {
+  @GET("users/{user}/repo?sort=pushed")
+  listRepos(
+    @Path("user") _user: string,
+    @Query("type") _type: string
+  ): AxiosResponse<any[]> {
+    return StubResponse;
+  }
 }
 
-// Optional: Use a custom client
-const client: RetroJS.IHttpClient = new RetroClient(request.defaults({
-    headers: {
-        'User-Agent': 'request'
-    }
-}));
+export function createGithubService() {
+  return new RetroBuilder()
+    .baseUrl("https://api.github.com/")
+    .build()
+    .create(GithubClient);
+}
 
-const retro = new RetroBuilder()
-    .client(client)
-    .baseUrl('https://api.github.com/')
-    .build();
+const githubService = createGithubService();
 
-// Use the Retro instance to instantiate the class
-const githubService = retro.create(GithubService);
-
-const call = githubService.listRepos('benjaminRomano', 'owner');
-
-call.execute().then(result => {
-    console.log(result.body.length);
-});
+githubService
+  .listRepos("benjaminRomano", "owner")
+  .then(response => console.log(response));
 ```
-
 
 #### Decorators
 
-``` ts
+```ts
 /* Method Decorators */
 @POST('path')
 @GET('path')

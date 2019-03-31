@@ -1,5 +1,5 @@
 import { RetroClient } from "./retroClient";
-import { Retro } from "./retro";
+import { RetroProxy } from "./proxy";
 
 export class RetroBuilder {
   private _baseUrl: string;
@@ -19,9 +19,9 @@ export class RetroBuilder {
     return this;
   }
 
-  build(): Retro {
+  build(): RetroProxy {
     const client = this._client || new RetroClient();
 
-    return new Retro(this._baseUrl, client);
+    return new RetroProxy(this._baseUrl, client);
   }
 }

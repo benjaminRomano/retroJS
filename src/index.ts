@@ -1,8 +1,7 @@
-export * from "./call";
 export * from "./retroBuilder";
 export * from "./retroClient";
 
-import {
+export {
   GET,
   POST,
   DELETE,
@@ -15,17 +14,3 @@ import {
   Field,
   Part
 } from "./decorators";
-
-export let decorators = {
-  GET: GET,
-  POST: POST,
-  DELETE: DELETE,
-  PUT: PUT,
-  Body: Body,
-  Path: Path,
-  Query: Query,
-  Headers: Headers,
-  Header: Header,
-  Field: Field,
-  Part: Part
-};

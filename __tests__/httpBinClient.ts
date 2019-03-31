@@ -1,4 +1,6 @@
 import {
+  RetroBuilder,
+  StubResponse,
   POST,
   Body,
   DELETE,
@@ -8,49 +10,45 @@ import {
   Header,
   Field,
   Part
-} from "../src/decorators";
-
-import { RetroBuilder, ICall, StubCall } from "../src";
+} from "../src";
+import { AxiosResponse } from "axios";
 
 export class HttpBinClient {
   @POST("/post")
-  post(@Body _body: any): ICall<any> {
-    return StubCall;
+  post(@Body _body: any): AxiosResponse<any> {
+    return StubResponse;
   }
 
   @DELETE("/delete")
-  delete(@Body _body: any): ICall<any> {
-    return StubCall;
+  delete(@Body _body: any): AxiosResponse<any> {
+    return StubResponse;
   }
 
   @PUT("/put")
-  put(@Body _body: any): ICall<any> {
-    return StubCall;
+  put(@Body _body: any): AxiosResponse<any> {
+    return StubResponse;
   }
 
   @Headers({
-    test: "overwritten",
+    test: "original",
     works: "works"
   })
   @GET("/headers")
-  headers(@Header("test") _header: string): ICall<any> {
-    return StubCall;
+  headers(@Header("test") _header: string): AxiosResponse<any> {
+    return StubResponse;
   }
 
   @POST("/post")
   form(
     @Field("name") _name: string,
     @Field("value") _value: string
-  ): ICall<any> {
-    return StubCall;
+  ): AxiosResponse<any> {
+    return StubResponse;
   }
 
   @POST("/post")
-  formData(
-    @Part("name") _name: string,
-    @Part("value") _value: string
-  ): ICall<any> {
-    return StubCall;
+  formData(@Part("field") _field: string): AxiosResponse<any> {
+    return StubResponse;
   }
 }
 

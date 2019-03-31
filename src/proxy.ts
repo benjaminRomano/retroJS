@@ -8,16 +8,17 @@ import {
   IBodyDescriptor
 } from "./decorators";
 import { RetroClient } from "./retroClient";
-import { AxiosRequestConfig } from "axios";
-import FormData from "form-data";
+import { AxiosRequestConfig, AxiosResponse } from "axios";
 import qs from "querystring";
+import FormData from "form-data";
+import { formDataToBuffer } from "./formData";
 
-export class Retro {
+export class RetroProxy {
   constructor(private baseUrl: string, private client: RetroClient) {}
 
   create<T extends object>(klass: { new (): T }): T {
     const handler: ProxyHandler<T> = {
-      get: this.constructCall.bind(this)
+      get: this.execute.bind(this)
     };
 
     const target: T = new klass();
@@ -25,108 +26,121 @@ export class Retro {
     return new Proxy(target, handler);
   }
 
-  private constructCall<T extends Object>(
+  /**
+   * Execute method stub replacement
+   * Constructs and executes request using decorators and supplied args
+   */
+  private execute<T extends Object>(
     target: T,
-    propertyKey: string | symbol
-  ): any {
-    return (...args: any[]): any => {
-      const requestDescriptor: IRequestMethodDescriptor = Reflect.getMetadata(
-        keys.Request,
-        target,
-        propertyKey
-      );
-      const pathParams: INamedParameterDescriptor[] =
-        Reflect.getMetadata(keys.Path, target, propertyKey) || [];
-      const queryParams: INamedParameterDescriptor[] =
-        Reflect.getMetadata(keys.Query, target, propertyKey) || [];
-
-      if (!requestDescriptor) {
-        throw new MetadataError(
-          target,
-          propertyKey,
-          "missing method decorator"
-        );
-      }
-
-      let requestPath: string = requestDescriptor.path;
-
-      requestPath = this.addPathParams(requestPath, pathParams, args);
-      requestPath = this.addQueryParams(requestPath, queryParams, args);
-
-      const options = this.createOptions(target, propertyKey, args);
-
-      return this.client.constructCall(options);
+    method: string | symbol
+  ): (args: any[]) => Promise<AxiosResponse<any>> {
+    // TODO: Investigate memoization since we are re-creating this method every request
+    return (...args: any[]) => {
+      const config = this.createRequestConfig(target, method, args);
+      return this.client.execute(config);
     };
   }
 
-  private createOptions(
+  private parseMethodAndUrl(
     target: Object,
-    propertyKey: string | symbol,
+    method: string | symbol,
     args: any[]
   ): AxiosRequestConfig {
-    const requestDescriptor: IRequestMethodDescriptor = Reflect.getMetadata(
+    const requestMethodDescriptor: IRequestMethodDescriptor = Reflect.getMetadata(
       keys.Request,
       target,
-      propertyKey
+      method
     );
+
+    if (!requestMethodDescriptor) {
+      throw new MetadataError(target, method, "Missing Method decorator");
+    }
+
+    const pathParams: INamedParameterDescriptor[] =
+      Reflect.getMetadata(keys.Path, target, method) || [];
+
+    const queryParams: INamedParameterDescriptor[] =
+      Reflect.getMetadata(keys.Query, target, method) || [];
+
+    let url: string = requestMethodDescriptor.path;
+
+    url = this.addPathParams(url, pathParams, args);
+    url = this.addQueryParams(url, queryParams, args);
+
+    return {
+      method: requestMethodDescriptor.method,
+      url
+    };
+  }
+
+  private createRequestConfig(
+    target: Object,
+    method: string | symbol,
+    args: any[]
+  ): AxiosRequestConfig {
     const bodyDescriptor: IBodyDescriptor = Reflect.getMetadata(
       keys.Body,
       target,
-      propertyKey
+      method
     );
+
+    const requestConfig: AxiosRequestConfig = {
+      baseURL: this.baseUrl,
+      headers: {},
+      ...this.parseMethodAndUrl(target, method, args)
+    };
+
     const headerDescriptors: INamedParameterDescriptor[] =
-      Reflect.getMetadata(keys.Header, target, propertyKey) || [];
+      Reflect.getMetadata(keys.Header, target, method) || [];
+
     const headersDescriptor: IHeadersDescriptor = Reflect.getMetadata(
       keys.Headers,
       target,
-      propertyKey
+      method
     );
-    const fieldDescriptors: INamedParameterDescriptor[] =
-      Reflect.getMetadata(keys.Field, target, propertyKey) || [];
-    const partDescriptors: INamedParameterDescriptor[] =
-      Reflect.getMetadata(keys.Part, target, propertyKey) || [];
 
-    const options: AxiosRequestConfig = {
-      method: requestDescriptor.method,
-      baseURL: this.baseUrl
-    };
+    const fieldDescriptors: INamedParameterDescriptor[] =
+      Reflect.getMetadata(keys.Field, target, method) || [];
+
+    const partDescriptors: INamedParameterDescriptor[] =
+      Reflect.getMetadata(keys.Part, target, method) || [];
 
     if (bodyDescriptor) {
       if (typeof args[bodyDescriptor.index] === "undefined") {
-        throw new MetadataError(target, propertyKey, "body is undefined");
+        throw new MetadataError(target, method, "body is undefined");
       }
 
-      options.data = args[bodyDescriptor.index];
+      requestConfig.data = args[bodyDescriptor.index];
+      requestConfig.headers["Content-Type"] = "application/json";
     }
-
-    options.headers = {};
 
     // Setup headers
     if (headerDescriptors.length > 0 || headersDescriptor) {
-      options.headers = {
-        ...options.headers,
+      requestConfig.headers = {
+        ...requestConfig.headers,
         ...this.createHeaders(headersDescriptor, headerDescriptors, args)
       };
     }
 
     // Setup FormUrlEncoded
     if (fieldDescriptors.length > 0) {
-      options.data = this.createFormUrlEncoded(fieldDescriptors, args);
-      options.headers["Content-Type"] = "application/x-www-form-urlencoded";
+      requestConfig.data = this.createFormUrlEncoded(fieldDescriptors, args);
+      requestConfig.headers["Content-Type"] =
+        "application/x-www-form-urlencoded";
     }
 
     // Setup Multi-part form data
     if (partDescriptors.length > 0) {
       const formData = this.createFormData(partDescriptors, args);
-      options.data = formData;
+      requestConfig.data = formDataToBuffer(formData);
 
-      options.headers = {
-        ...options.headers,
+      requestConfig.headers = {
+        ...requestConfig.headers,
         ...formData.getHeaders()
       };
     }
 
-    return options;
+    return requestConfig;
   }
 
   private createFormUrlEncoded(
@@ -149,6 +163,7 @@ export class Retro {
   ): FormData {
     const formData = new FormData();
 
+    // TODO: Need to make adjusments to Part decorator to support file uploads
     for (const p of partDescriptors) {
       if (typeof args[p.index] !== "undefined") {
         formData.append(p.name, args[p.index]);
@@ -199,6 +214,7 @@ export class Retro {
     return path;
   }
 
+  // TODO: Replace with querystring
   private addQueryParams(
     path: string,
     queryParams: INamedParameterDescriptor[],

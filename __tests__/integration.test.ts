@@ -1,46 +1,77 @@
 import { createHttpBinClient } from "./httpBinClient";
 
-test("http get request", async () => {
+test("http post request", async () => {
   const httpBinClient = createHttpBinClient();
 
-  const result = await httpBinClient.post("hello").execute();
+  const response = await httpBinClient.post("hello");
 
-  console.log(result);
+  expect(response.status).toEqual(200);
+  expect(response.data).toMatchObject({
+    data: "hello",
+    url: "https://httpbin.org/post"
+  });
 });
 
-// Httpbin tests - http://httpbin.org/
+test("http delete request", async () => {
+  const httpBinClient = createHttpBinClient();
 
-// httpBinClient
-//   .delete({ hello: "world" })
-//   .execute()
-//   .then(r => {
-//     console.log(r.body.url, r.body.json);
-//   });
+  const response = await httpBinClient.delete({ hello: "world" });
 
-// httpBinClient
-//   .put({ hello: "world" })
-//   .execute()
-//   .then(r => {
-//     console.log(r.body.url, r.body.json);
-//   });
+  expect(response.status).toEqual(200);
+  expect(response.data).toMatchObject({
+    data: JSON.stringify({ hello: "world" }),
+    url: "https://httpbin.org/delete"
+  });
+});
 
-// httpBinClient
-//   .headers("test")
-//   .execute()
-//   .then(r => {
-//     console.log("http://httpbin.org/headers", r.body.headers);
-//   });
+test("http put request", async () => {
+  const httpBinClient = createHttpBinClient();
 
-// httpBinClient
-//   .form("name", "some value")
-//   .execute()
-//   .then(r => {
-//     console.log(`${r.body.url} form`, r.body.form);
-//   });
+  const response = await httpBinClient.put({ hello: "world" });
 
-// httpBinClient
-//   .formData("formData", "moreFormData")
-//   .execute()
-//   .then(r => {
-//     console.log(`${r.body.url} formData`, r.body.form);
-//   });
+  expect(response.status).toEqual(200);
+  expect(response.data).toMatchObject({
+    data: JSON.stringify({ hello: "world" }),
+    url: "https://httpbin.org/put"
+  });
+});
+
+test("http request headers", async () => {
+  const httpBinClient = createHttpBinClient();
+
+  // This header argument shold override the value provided in Header decorator
+  const response = await httpBinClient.headers("overrides");
+
+  expect(response.status).toEqual(200);
+  expect(response.data.headers).toMatchObject({
+    Test: "overrides",
+    Works: "works",
+    Host: "httpbin.org"
+  });
+});
+
+test("http request form", async () => {
+  const httpBinClient = createHttpBinClient();
+
+  // This header argument shold override the value provided in Header decorator
+  const response = await httpBinClient.form("Ben", "hello");
+
+  expect(response.status).toEqual(200);
+  expect(response.data).toMatchObject({
+    form: {
+      name: "Ben",
+      value: "hello"
+    },
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    }
+  });
+});
+
+test("http request multi-part form data", async () => {
+  const httpBinClient = createHttpBinClient();
+
+  const response = await httpBinClient.formData("Ben");
+
+  expect(response.data.form["field"]).toEqual("Ben");
+});
