@@ -8,7 +8,7 @@ test("http post request", async () => {
   expect(response.status).toEqual(200);
   expect(response.data).toMatchObject({
     data: "hello",
-    url: "https://httpbin.org/post"
+    url: "http://httpbin.org/post",
   });
 });
 
@@ -20,7 +20,7 @@ test("http delete request", async () => {
   expect(response.status).toEqual(200);
   expect(response.data).toMatchObject({
     data: JSON.stringify({ hello: "world" }),
-    url: "https://httpbin.org/delete"
+    url: "http://httpbin.org/delete",
   });
 });
 
@@ -32,7 +32,7 @@ test("http put request", async () => {
   expect(response.status).toEqual(200);
   expect(response.data).toMatchObject({
     data: JSON.stringify({ hello: "world" }),
-    url: "https://httpbin.org/put"
+    url: "http://httpbin.org/put",
   });
 });
 
@@ -46,7 +46,7 @@ test("http request headers", async () => {
   expect(response.data.headers).toMatchObject({
     Test: "overrides",
     Works: "works",
-    Host: "httpbin.org"
+    Host: "httpbin.org",
   });
 });
 
@@ -60,11 +60,11 @@ test("http request form", async () => {
   expect(response.data).toMatchObject({
     form: {
       name: "Ben",
-      value: "hello"
+      value: "hello",
     },
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    }
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
   });
 });
 

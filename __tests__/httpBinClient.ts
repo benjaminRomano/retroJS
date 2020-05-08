@@ -9,7 +9,7 @@ import {
   GET,
   Header,
   Field,
-  Part
+  Part,
 } from "../src";
 import { AxiosResponse } from "axios";
 
@@ -31,7 +31,7 @@ export class HttpBinClient {
 
   @Headers({
     test: "original",
-    works: "works"
+    works: "works",
   })
   @GET("/headers")
   headers(@Header("test") _header: string): AxiosResponse<any> {
@@ -58,3 +58,5 @@ export function createHttpBinClient() {
     .build()
     .create(HttpBinClient);
 }
+
+test.skip("skip", () => {});

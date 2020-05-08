@@ -5,20 +5,19 @@ import {
   IHeadersDescriptor,
   INamedParameterDescriptor,
   IRequestMethodDescriptor,
-  IBodyDescriptor
+  IBodyDescriptor,
 } from "./decorators";
 import { RetroClient } from "./retroClient";
 import { AxiosRequestConfig, AxiosResponse } from "axios";
-import qs from "querystring";
+import qs from "query-string";
 import FormData from "form-data";
-import { formDataToBuffer } from "./formData";
 
 export class RetroProxy {
   constructor(private baseUrl: string, private client: RetroClient) {}
 
   create<T extends object>(klass: { new (): T }): T {
     const handler: ProxyHandler<T> = {
-      get: this.execute.bind(this)
+      get: this.execute.bind(this),
     };
 
     const target: T = new klass();
@@ -69,7 +68,7 @@ export class RetroProxy {
 
     return {
       method: requestMethodDescriptor.method,
-      url
+      url,
     };
   }
 
@@ -87,7 +86,7 @@ export class RetroProxy {
     const requestConfig: AxiosRequestConfig = {
       baseURL: this.baseUrl,
       headers: {},
-      ...this.parseMethodAndUrl(target, method, args)
+      ...this.parseMethodAndUrl(target, method, args),
     };
 
     const headerDescriptors: INamedParameterDescriptor[] =
@@ -118,7 +117,7 @@ export class RetroProxy {
     if (headerDescriptors.length > 0 || headersDescriptor) {
       requestConfig.headers = {
         ...requestConfig.headers,
-        ...this.createHeaders(headersDescriptor, headerDescriptors, args)
+        ...this.createHeaders(headersDescriptor, headerDescriptors, args),
       };
     }
 
@@ -131,12 +130,11 @@ export class RetroProxy {
 
     // Setup Multi-part form data
     if (partDescriptors.length > 0) {
-      const formData = this.createFormData(partDescriptors, args);
-      requestConfig.data = formDataToBuffer(formData);
+      requestConfig.data = this.createFormData(partDescriptors, args);
 
       requestConfig.headers = {
         ...requestConfig.headers,
-        ...formData.getHeaders()
+        ...requestConfig.data.getHeaders(),
       };
     }
 

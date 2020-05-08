@@ -17,3 +17,5 @@ export function createGithubService() {
     .build()
     .create(GithubClient);
 }
+
+test.skip("skip", () => {});
