@@ -1,12 +1,15 @@
 {
   "name": "retrojs",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "description": "Annotation-based Http Client generator",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "jest",
-    "build": "tsc --p tsconfig.build.json -w -p ."
+    "build": "tsc --p tsconfig.build.json"
   },
   "repository": {
     "type": "git",
