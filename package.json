@@ -6,7 +6,7 @@
   "typings": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "tsc -w -p ."
+    "build": "tsc --p tsconfig.build.json -w -p ."
   },
   "repository": {
     "type": "git",
