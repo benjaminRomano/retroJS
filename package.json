@@ -6,8 +6,7 @@
   "typings": "dist/index.d.ts",
   "scripts": {
     "test": "jest",
-    "build": "tsc -w -p .",
-    "buildExamples": "tsc -w -p ./examples"
+    "build": "tsc -w -p ."
   },
   "repository": {
     "type": "git",
@@ -30,6 +29,7 @@
     "@babel/preset-typescript": "^7.9.0",
     "@types/form-data": "^2.5.0",
     "@types/jest": "^24.9.1",
+    "@types/node": "^13.13.5",
     "jest": "^24.9.0",
     "prettier": "1.16.4",
     "ts-jest": "^24.3.0",
