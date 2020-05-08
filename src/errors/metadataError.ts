@@ -1,6 +1,5 @@
-
 export class MetadataError extends Error {
-    constructor(private target: Object, private property: string | symbol, private msg: string) {
-        super(`${target.constructor.name}.${property}: ${msg}`);
-    }
+  constructor(target: object, property: string | symbol, msg: string) {
+    super(`${target.constructor.name}.${String(property)}: ${msg}`);
+  }
 }

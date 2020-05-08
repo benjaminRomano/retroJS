@@ -1,27 +1,27 @@
-import {IHttpClient, RetroClient} from './retroClient';
-import {Retro} from './retro';
+import { RetroClient } from "./retroClient";
+import { RetroProxy } from "./proxy";
 
 export class RetroBuilder {
-    private _baseUrl: string;
-    private _client: IHttpClient;
+  private _baseUrl: string;
+  private _client: RetroClient | undefined;
 
-    constructor() {
-        this._baseUrl = '';
-    }
+  constructor() {
+    this._baseUrl = "";
+  }
 
-    baseUrl(baseUrl: string): RetroBuilder {
-        this._baseUrl = baseUrl;
-        return this;
-    }
+  baseUrl(baseUrl: string): RetroBuilder {
+    this._baseUrl = baseUrl;
+    return this;
+  }
 
-    client(client: IHttpClient): RetroBuilder {
-        this._client = client;
-        return this;
-    }
+  client(client: RetroClient): RetroBuilder {
+    this._client = client;
+    return this;
+  }
 
-    build(): Retro {
-        const client: IHttpClient = this._client || new RetroClient();
+  build(): RetroProxy {
+    const client = this._client || new RetroClient();
 
-        return new Retro(this._baseUrl, client);
-    }
+    return new RetroProxy(this._baseUrl, client);
+  }
 }

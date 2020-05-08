@@ -1,19 +1,21 @@
-import {ICall, RetroCall, RequestAPI} from './call';
-import * as request from 'request';
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
-export interface IHttpClient {
-    constructCall<T>(path: string, options: request.CoreOptions): ICall<T>;
-}
+/**
+ * Used within hand-written HttpClient to avoid compile errors
+ */
+export const StubResponse: AxiosResponse<any> = null as any;
 
-export class RetroClient implements IHttpClient {
+export class RetroClient {
+  constructor(private defaultConfig?: AxiosRequestConfig) {
+    this.defaultConfig = this.defaultConfig;
+  }
 
-    constructor(private request?: RequestAPI) {
-        this.request = this.request || require('request').defaults({
-            json: true
-        });
-    }
-
-    constructCall<T>(path: string, options: request.CoreOptions): ICall<T> {
-        return new RetroCall<T>(this.request, path, options);
-    }
+  public execute<T>(
+    requestConfig: AxiosRequestConfig
+  ): Promise<AxiosResponse<T>> {
+    return axios.request<T>({
+      ...this.defaultConfig,
+      ...requestConfig
+    });
+  }
 }
