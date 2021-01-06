@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/benjaminRomano/retroJS#readme",
   "dependencies": {
-    "axios": "^0.18.1",
+    "axios": "^0.21.1",
     "form-data": "^2.5.1",
     "query-string": "^6.12.1",
     "reflect-metadata": "^0.1.13"
